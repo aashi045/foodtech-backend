@@ -2,7 +2,7 @@ const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
-
+//signup api
 exports.signup = async (req, res) => {
     const { name, email, password, role, phone } = req.body
     try {
@@ -20,7 +20,7 @@ exports.signup = async (req, res) => {
         res.status(500).json({ message: err.message })
     }
 }
-
+//login api
 exports.login = async (req, res) => {
     const { email, password } = req.body
     try {
