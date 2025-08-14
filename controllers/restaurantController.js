@@ -58,18 +58,63 @@ exports.getRestaurantsWithApprove = async (req, res) => {
 }
 
 //approve by admin
+// exports.approveRestaurant = async (req, res) => {
+//     const { restaurantId, approve } = req.body
+//     try {
+//         const restaurant = await Restaurant.findByPk(restaurantId)
+//         if (!restaurant) {
+//             return res.status(404).json({ message: 'Restaurant Not Found' })
+//         }
+//         restaurant.isApproved = approve
+//         await restaurant.save();
+//         res.status(200).json({ message: `Restaurant ${approve ? 'approved' : 'rejected'}` });
+//     }
+//     catch (err) {
+//         res.status(500).json({ message: err.message })
+//     }
+// }
+
+//save() - save whole db instance and run api for two times ; one for find next for save
+//update () - its efficient for single update or when we don't want restro data , if we want data use return true
 exports.approveRestaurant = async (req, res) => {
-    const { restaurantId, approve } = req.body
+    const { restaurantId, approve } = req.body;
     try {
-        const restaurant = await Restaurant.findByPk(restaurantId)
-        if (!restaurant) {
-            return res.status(404).json({ message: 'Restaurant Not Found' })
+        const [updatedCount, updatedRestaurants] = await Restaurant.update(
+            { isApproved: approve },
+            {
+                where: { id: restaurantId },
+                returning: true // works fully on PostgreSQL, partial on MySQL
+            }
+        );
+
+        if (updatedCount === 0) {
+            return res.status(404).json({ message: 'Restaurant Not Found' });
         }
-        restaurant.isApproved = approve
-        await restaurant.save();
-        res.status(200).json({ message: `Restaurant ${approve ? 'approved' : 'rejected'}` });
+
+        // updatedRestaurants[0] will be the updated restaurant instance
+        res.status(200).json({
+            message: `Restaurant ${approve ? 'approved' : 'rejected'}`,
+            restaurant: updatedRestaurants[0]
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-    catch (err) {
-        res.status(500).json({ message: err.message })
+};
+
+
+exports.deleteRestaurant=async(req,res)=>{
+    const {id}=req.params
+    try{
+          const deletedCount = await Restaurant.destroy({
+            where: { id }
+        });
+
+        if(!deletedCount){
+            return res.status(404).json({message:'Restaurant Not Found'})
+        }
+        return res.status(200).json({ message: 'Restaurant deleted successfully' });
+    }
+    catch(err){
+        return res.status(500).json({message:err.message})
     }
 }

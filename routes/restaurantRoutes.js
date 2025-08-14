@@ -1,6 +1,6 @@
 const express=require('express');
 const router=express.Router();
-const {addRestaurant,getRestaurants,getRestaurantsWithApprove,approveRestaurant}=require('../controllers/restaurantController')
+const {addRestaurant,getRestaurants,getRestaurantsWithApprove,approveRestaurant,deleteRestaurant    }=require('../controllers/restaurantController')
 const authMiddleware=require('../middleware/authMiddleware')
 
 console.log({ addRestaurant, getRestaurants, getRestaurantsWithApprove, approveRestaurant },'route=======>>')
@@ -18,5 +18,7 @@ router.get('/approveRestaurant', getRestaurantsWithApprove);
 
 // Admin approves/rejects restaurant
 router.post('/approve', authMiddleware, approveRestaurant);
+router.delete('/deleteRestaurant/:id', authMiddleware, deleteRestaurant);
+
 
 module.exports=router;
