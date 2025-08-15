@@ -4,7 +4,7 @@ const User = require('../models/User')
 console.log('controller file')
 exports.addRestaurant = async (req, res) => {
     console.log('add restro')
-    const { name, logo, description, contact, address, location, openTime, closeTime, speciality, vendorId: vendorIdFromBody } = req.body
+    const { name, logo, description, contact, address, location, openTime, closeTime, speciality, vendorId: vendorIdFromBody,specialDiscount } = req.body
     const vendorId = req.vendorId || vendorIdFromBody //we take vendorId: vendorIdFromBody because when we hit api through postman we can't get vendor id through token
     try {
         const user = await User.findByPk(vendorId);
@@ -26,12 +26,54 @@ exports.addRestaurant = async (req, res) => {
         res.status(500).json({ message: err.message })
     }
 }
+exports.editRestaurant = async (req, res) => {
+    console.log('edit')
+    const { id } = req.query; // restaurant ID from URL params
+    const {
+        name, logo, description, contact, address,
+        location, openTime, closeTime, speciality,
+        vendorId: vendorIdFromBody,
+        specialDiscount
+    } = req.body;
+
+    const vendorId = req.vendorId || vendorIdFromBody;
+
+    try {
+        // 1️⃣ Check if restaurant exists
+        const restaurant = await Restaurant.findByPk(id);
+        if (!restaurant) {
+            return res.status(404).json({ message: "Restaurant not found" });
+        }
+
+        // 2️⃣ Check vendor
+        const user = await User.findByPk(vendorId);
+        if (!user) {
+            return res.status(404).json({ message: "Vendor not found" });
+        }
+
+        // 3️⃣ Check role
+        if (user.role !== 'vendor') {
+            return res.status(403).json({ message: "Only vendors can edit restaurants" });
+        }
+
+        // 4️⃣ Update restaurant
+        await restaurant.update({
+            name, logo, description, contact, address,
+            location, openTime, closeTime, speciality,specialDiscount
+        });
+
+        res.status(200).json({ message: 'Restaurant updated successfully', restaurantId: restaurant.id });
+    }
+    catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
 
 exports.getRestaurants = async (req, res) => {
     try {
         const restaurant = await Restaurant.findAll({
-            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality']
+            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality','specialDiscount']
         })
         res.status(200).json({ message: 'Data Fetched Successfully', restaurant })
     }
@@ -44,7 +86,7 @@ exports.getRestaurantsWithApprove = async (req, res) => {
     try {
         const restaurant = await Restaurant.findAll({
             where: { isApproved: true },
-            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality'],
+            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality','specialDiscount'],
             order: [['rating', 'DESC']],
         })
         if(restaurant.length==0){
@@ -79,11 +121,12 @@ exports.getRestaurantsWithApprove = async (req, res) => {
 exports.approveRestaurant = async (req, res) => {
     const { restaurantId, approve } = req.body;
     try {
+        //use array var; [updatedRes] bcz update return array
         const [updatedCount, updatedRestaurants] = await Restaurant.update(
             { isApproved: approve },
             {
                 where: { id: restaurantId },
-                returning: true // works fully on PostgreSQL, partial on MySQL
+                returning: true
             }
         );
 

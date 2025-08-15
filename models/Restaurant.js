@@ -18,7 +18,8 @@ const Restaurant = sequelize.define('Restaurant', {
     isApproved: { type: DataTypes.BOOLEAN, defaultValue: false }, // approved by admin
     rating: { type: DataTypes.FLOAT, defaultValue: 0 },            // default rating
     vendorId: { type: DataTypes.INTEGER, allowNull: false },
-    speciality:{type: DataTypes.ARRAY(DataTypes.STRING)}
+    speciality:{type: DataTypes.ARRAY(DataTypes.STRING)},
+    specialDiscount:{type:DataTypes.FLOAT,defaultValue:0}
 }, {
     tableName: 'Restaurant',
     timestamps: true

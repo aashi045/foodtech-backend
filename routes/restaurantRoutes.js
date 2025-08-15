@@ -1,9 +1,9 @@
 const express=require('express');
 const router=express.Router();
-const {addRestaurant,getRestaurants,getRestaurantsWithApprove,approveRestaurant,deleteRestaurant    }=require('../controllers/restaurantController')
+const {addRestaurant,getRestaurants,getRestaurantsWithApprove,approveRestaurant,deleteRestaurant, editRestaurant    }=require('../controllers/restaurantController')
 const authMiddleware=require('../middleware/authMiddleware')
 
-console.log({ addRestaurant, getRestaurants, getRestaurantsWithApprove, approveRestaurant },'route=======>>')
+console.log({ addRestaurant, getRestaurants, getRestaurantsWithApprove, approveRestaurant,editRestaurant },'route=======>>')
     console.log(typeof authMiddleware);
 // Vendor adds/updates restaurant
 router.post('/add', authMiddleware, addRestaurant);
@@ -19,6 +19,7 @@ router.get('/approveRestaurant', getRestaurantsWithApprove);
 // Admin approves/rejects restaurant
 router.post('/approve', authMiddleware, approveRestaurant);
 router.delete('/deleteRestaurant/:id', authMiddleware, deleteRestaurant);
+router.put('/editRestaurant',authMiddleware,editRestaurant)
 
 
 module.exports=router;
