@@ -18,7 +18,7 @@ router.get('/approveRestaurant', getRestaurantsWithApprove);
 
 // Admin approves/rejects restaurant
 router.post('/approve', authMiddleware, approveRestaurant);
-router.delete('/deleteRestaurant/:id', authMiddleware, deleteRestaurant);
+router.delete('/deleteRestaurant', authMiddleware, deleteRestaurant);
 router.put('/editRestaurant',authMiddleware,editRestaurant)
 
 

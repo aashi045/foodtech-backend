@@ -118,7 +118,7 @@ exports.getRestaurantsWithApprove = async (req, res) => {
 
 //save() - save whole db instance and run api for two times ; one for find next for save
 //update () - its efficient for single update or when we don't want restro data , if we want data use return true
-exports.approveRestaurant = async (req, res) => {
+exports.approveRestaurant = async (req, res) => { 
     const { restaurantId, approve } = req.body;
     try {
         //use array var; [updatedRes] bcz update return array
@@ -146,15 +146,15 @@ exports.approveRestaurant = async (req, res) => {
 
 
 exports.deleteRestaurant=async(req,res)=>{
-    const {id}=req.params
+    const {id}=req.query
+    console.log(id,'id by params')
     try{
-          const deletedCount = await Restaurant.destroy({
-            where: { id }
-        });
-
-        if(!deletedCount){
-            return res.status(404).json({message:'Restaurant Not Found'})
+        const restroId=await Restaurant.findByPk(id)
+        console.log(restroId,'restroId')
+        if(!restroId){
+            return res.status(403).json({message:'Restaurant Not Found'})
         }
+        await restroId.destroy()
         return res.status(200).json({ message: 'Restaurant deleted successfully' });
     }
     catch(err){
