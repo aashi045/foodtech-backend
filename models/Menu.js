@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 
-exports.Menus = sequelize.define('Menus', {
+const Menu = sequelize.define('Menu', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING, allowNull: false },
     image: { type: DataTypes.STRING },
@@ -22,3 +22,5 @@ exports.Menus = sequelize.define('Menus', {
     tableName:'Menu',
     timestamps:true
 })
+
+module.exports = Menu

@@ -1,14 +1,12 @@
+const { Menu } = require('../models');
 const Restaurant = require('../models/Restaurant');
 const User = require('../models/User')
 
-console.log('controller file')
 exports.addRestaurant = async (req, res) => {
-    console.log('add restro')
     const { name, logo, description, contact, address, location, openTime, closeTime, speciality, vendorId: vendorIdFromBody,specialDiscount } = req.body
     const vendorId = req.vendorId || vendorIdFromBody //we take vendorId: vendorIdFromBody because when we hit api through postman we can't get vendor id through token
     try {
         const user = await User.findByPk(vendorId);
-        console.log(user,'user')
         if (!user) {
             return res.status(404).json({ message: "Vendor not found" });
         }
@@ -27,7 +25,6 @@ exports.addRestaurant = async (req, res) => {
     }
 }
 exports.editRestaurant = async (req, res) => {
-    console.log('edit')
     const { id } = req.query; // restaurant ID from URL params
     const {
         name, logo, description, contact, address,
@@ -73,7 +70,8 @@ exports.editRestaurant = async (req, res) => {
 exports.getRestaurants = async (req, res) => {
     try {
         const restaurant = await Restaurant.findAll({
-            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality','specialDiscount']
+            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality','specialDiscount'],
+            include:  { model: Menu, as: 'menus' } 
         })
         res.status(200).json({ message: 'Data Fetched Successfully', restaurant })
     }
@@ -147,10 +145,8 @@ exports.approveRestaurant = async (req, res) => {
 
 exports.deleteRestaurant=async(req,res)=>{
     const {id}=req.query
-    console.log(id,'id by params')
     try{
         const restroId=await Restaurant.findByPk(id)
-        console.log(restroId,'restroId')
         if(!restroId){
             return res.status(403).json({message:'Restaurant Not Found'})
         }

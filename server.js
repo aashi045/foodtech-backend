@@ -2,19 +2,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 const sequelize = require('./config/db');
+const routes = require('./routes');
 
-
-const authRoutes = require('./routes/authRoutes');
-const restaurantRoutes = require('./routes/restaurantRoutes');
 
 const app = express();
 app.use(bodyParser.json());
-
-
-app.use('/api/auth', authRoutes);
-
-app.use('/api/restaurants', restaurantRoutes);
-
+app.use('/api', routes);
 
 sequelize.sync({ alter: true })
   .then(() => console.log('Database synced'))

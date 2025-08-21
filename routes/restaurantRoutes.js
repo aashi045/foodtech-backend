@@ -3,9 +3,7 @@ const router=express.Router();
 const {addRestaurant,getRestaurants,getRestaurantsWithApprove,approveRestaurant,deleteRestaurant, editRestaurant    }=require('../controllers/restaurantController')
 const authMiddleware=require('../middleware/authMiddleware')
 
-console.log({ addRestaurant, getRestaurants, getRestaurantsWithApprove, approveRestaurant,editRestaurant },'route=======>>')
-    console.log(typeof authMiddleware);
-// Vendor adds/updates restaurant
+
 router.post('/add', authMiddleware, addRestaurant);
 
 // Get all restaurants (for customers)
