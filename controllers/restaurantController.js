@@ -71,7 +71,7 @@ exports.getRestaurants = async (req, res) => {
     try {
         const restaurant = await Restaurant.findAll({
             attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality','specialDiscount'],
-            include:  { model: Menu, as: 'menus' } 
+         include:[{model:Menu, as:'menus'}]
         })
         res.status(200).json({ message: 'Data Fetched Successfully', restaurant })
     }

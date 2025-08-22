@@ -46,7 +46,8 @@ exports.deleteMenu = async (req, res) => {
         if (!menuId) {
             return res.status(403).json({ message: 'Menu not found' })
         }
-        await Menu.destroy();
+        await menuId.destroy();
+        res.status(200).json({message:'Menu Deleted Successfully'})
     }
     catch (err) {
         return res.status(500).json({ message: err.message })
@@ -54,20 +55,33 @@ exports.deleteMenu = async (req, res) => {
 }
 
 exports.getMenus = async (req, res) => {
-    const { restro_id } = req.params;
-    const RestroId = await Restaurant.findByPk(restro_id)
-    try {
-        if (!RestroId)
-            return res.status(403).json({ message: 'Restaurant NOT FOUND' })
-        const AllMenu = await Restaurant.findAll({
-            attributes: ['id', 'name', 'image', 'description', 'cost', 'veg', 'kcal', 'Carbs', 'Sugar', 'Fat', 'Protein', 'Sodium', 'Saturated_fat', 'Contains', 'restro_id']
-        })
-        if(AllMenu.length==0){
-            return res.status(400).json({message:'Data Not Found'})
-        }
+  const { restro_id } = req.query;
+
+  try {
+    const restro = await Restaurant.findByPk(restro_id);
+    if (!restro) {
+      return res.status(404).json({ message: 'Restaurant NOT FOUND' });
     }
 
-    catch (err) {
-        return res.status(500).json({ message: err.message })
+    const menus = await Menu.findAll({
+      where: { restro_id },
+      attributes: [
+        'id', 'name', 'image', 'description', 'cost', 'veg', 'kcal',
+        'Carbs', 'Sugar', 'Fat', 'Protein', 'Sodium', 'Saturated_fat',
+        'Contains', 'restro_id'
+      ]
+    });
+
+    if (menus.length === 0) {
+      return res.status(404).json({ message: 'No menus found for this restaurant' });
     }
-}
+
+    res.status(200).json({
+      message: 'Menus fetched successfully',
+      restaurant: restro.name,
+      menus
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};

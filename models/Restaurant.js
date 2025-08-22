@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-console.log('model file')
 
 const Restaurant = sequelize.define('Restaurant', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
