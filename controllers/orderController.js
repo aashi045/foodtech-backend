@@ -23,12 +23,14 @@ exports.createOrder = async (req, res) => {
         if (!resId) {
             return res.status(403).json({ message: 'Restaurant Not Found' });
         }
-
+        let totalAmount = 0;
         for (const item of items) {
             const menu = await Menu.findByPk(item.menuId);
             if (!menu) {
                 return res.status(400).json({ message: `Menu item not found with id ${item.menuId}` });
             }
+            const price = menu.cost * item.quantity
+            totalAmount += price
             if (menu.restro_id !== restroId) {
                 return res.status(400).json({ message: `Menu item ${item.menuId} does not belong to restaurant ${restroId}` });
             }
@@ -37,7 +39,8 @@ exports.createOrder = async (req, res) => {
         const order = await Order.create({
             customerId: req.user.id || vendorIdFromBody,
             status: 'Pending',
-            restroId
+            restroId,
+            totalAmount: totalAmount
         });
 
         for (const item of items) {
@@ -65,7 +68,7 @@ exports.updateStatus = async (req, res) => {
         const orderId = await Order.findByPk(orderId)
         const user = await User.findByPk(userId)
         if (!user) {
-            return res.status(403).json({ message: 'You are not a valid user' })
+            return res.status(403).json({ message: 'User does not exist' })
         }
         if (user.id != userId) {
             return res.status(403).json({ message: 'You are not a valid user' })
@@ -115,7 +118,7 @@ exports.getVendorOrders = async (req, res) => {
 //delete order by customer
 
 exports.deleteOrder = async (req, res) => {
-    const  {orderId}  = req.query
+    const { orderId } = req.query
     try {
         const order = await Order.findByPk(orderId);
         if (!order) {
