@@ -8,9 +8,11 @@ const Restaurant = sequelize.define('Restaurant', {
     name: { type: DataTypes.STRING, allowNull: false },
     logo: { type: DataTypes.STRING },
     description: { type: DataTypes.STRING },
-    contact: { type: DataTypes.STRING,allowNull:false,validate: {
-        is: /^[0-9+]+$/ 
-    } },
+    contact: {
+        type: DataTypes.STRING, allowNull: false, validate: {
+            is: /^[0-9+]+$/
+        }
+    },
     address: { type: DataTypes.STRING },
     location: { type: DataTypes.STRING },      // latitude, longitude
     openTime: { type: DataTypes.TIME },
@@ -18,8 +20,9 @@ const Restaurant = sequelize.define('Restaurant', {
     isApproved: { type: DataTypes.BOOLEAN, defaultValue: false }, // approved by admin
     rating: { type: DataTypes.FLOAT, defaultValue: 0 },            // default rating
     vendorId: { type: DataTypes.INTEGER, allowNull: false },
-    speciality:{type: DataTypes.ARRAY(DataTypes.STRING)},
-    specialDiscount:{type:DataTypes.FLOAT,defaultValue:0}
+    speciality: { type: DataTypes.ARRAY(DataTypes.STRING) },
+    specialDiscount: { type: DataTypes.FLOAT, defaultValue: 0 },
+    veg: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
 }, {
     tableName: 'Restaurant',
     timestamps: true
