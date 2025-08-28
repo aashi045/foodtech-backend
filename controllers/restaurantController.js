@@ -1,12 +1,15 @@
 const { Menu } = require('../models');
 const Restaurant = require('../models/Restaurant');
-const User = require('../models/User')
+const User = require('../models/User');
+const { Op } = require('sequelize')
 
 exports.addRestaurant = async (req, res) => {
-    const { name, logo, description, contact, address, location, openTime, closeTime, speciality, vendorId: vendorIdFromBody,specialDiscount } = req.body
+    console.log('add restro')
+    const { name, logo, description, contact, address, location, openTime, closeTime, speciality, vendorId: vendorIdFromBody, specialDiscount, veg } = req.body
     const vendorId = req.vendorId || vendorIdFromBody //we take vendorId: vendorIdFromBody because when we hit api through postman we can't get vendor id through token
     try {
         const user = await User.findByPk(vendorId);
+        console.log(user, 'user')
         if (!user) {
             return res.status(404).json({ message: "Vendor not found" });
         }
@@ -16,7 +19,7 @@ exports.addRestaurant = async (req, res) => {
             return res.status(403).json({ message: "Only vendors can create restaurants" });
         }
         const restaurant = await Restaurant.create({
-            name, logo, description, contact, address, location, openTime, closeTime, speciality, vendorId
+            name, logo, description, contact, address, location, openTime, closeTime, speciality, vendorId, veg
         })
         res.status(201).json({ message: 'Restaurant created, pending admin approval', restaurantId: restaurant.id })
     }
@@ -30,7 +33,8 @@ exports.editRestaurant = async (req, res) => {
         name, logo, description, contact, address,
         location, openTime, closeTime, speciality,
         vendorId: vendorIdFromBody,
-        specialDiscount
+        specialDiscount,
+        veg
     } = req.body;
 
     const vendorId = req.vendorId || vendorIdFromBody;
@@ -56,7 +60,7 @@ exports.editRestaurant = async (req, res) => {
         // 4️⃣ Update restaurant
         await restaurant.update({
             name, logo, description, contact, address,
-            location, openTime, closeTime, speciality,specialDiscount
+            location, openTime, closeTime, speciality, specialDiscount
         });
 
         res.status(200).json({ message: 'Restaurant updated successfully', restaurantId: restaurant.id });
@@ -69,26 +73,75 @@ exports.editRestaurant = async (req, res) => {
 
 exports.getRestaurants = async (req, res) => {
     try {
-        const restaurant = await Restaurant.findAll({
-            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality','specialDiscount'],
-         include:[{model:Menu, as:'menus'}]
-        })
-        res.status(200).json({ message: 'Data Fetched Successfully', restaurant })
+        const { veg, rating, name, address, page = 1, limit = 10 } = req.query;
+
+        let where = {};
+
+        if (veg !== undefined) {
+            where.veg = veg === 'true';
+        }
+
+        if (rating) {
+            where.rating = { [Op.gte]: Number(rating) };
+        }
+
+        if (name) {
+            where.name = { [Op.iLike]: `%${name}%` };
+        }
+
+        if (address) {
+            where.address = { [Op.iLike]: `%${address}%` };
+        }
+        // Convert pagination params to numbers
+
+        const pageNum = Number(page) || 1;
+        const limitNum = Number(limit) || 10;
+        const offset = (pageNum - 1) * limitNum;
+        const restaurants = await Restaurant.findAll({
+            where: Object.keys(where).length > 0 ? where : undefined,
+            attributes: [
+                'id',
+                'name',
+                'logo',
+                'description',
+                'contact',
+                'address',
+                'location',
+                'openTime',
+                'closeTime',
+                'isApproved',
+                'rating',
+                'vendorId',
+                'speciality',
+                'specialDiscount',
+                'veg'
+            ],
+            limit: limitNum,
+            offset,
+            order: [["createdAt", "DESC"]],
+        });
+
+        res.status(200).json({
+            message: restaurants.length
+                ? 'Restaurants fetched successfully'
+                : 'No restaurants found with given filters',
+            count: restaurants.length,
+            restaurants
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-    catch (err) {
-        res.status(500).json({ message: err.message })
-    }
-}
+};
 
 exports.getRestaurantsWithApprove = async (req, res) => {
     try {
         const restaurant = await Restaurant.findAll({
             where: { isApproved: true },
-            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality','specialDiscount'],
+            attributes: ['id', 'name', 'logo', 'description', 'contact', 'address', 'location', 'openTime', 'closeTime', 'isApproved', 'rating', 'vendorId', 'speciality', 'specialDiscount', 'veg'],
             order: [['rating', 'DESC']],
         })
-        if(restaurant.length==0){
-            return res.status(200).json({message:'No approved restaurants available yet. Please check back soon.'})
+        if (restaurant.length == 0) {
+            return res.status(200).json({ message: 'No approved restaurants available yet. Please check back soon.' })
         }
         res.status(200).json({ message: 'Data Fetched Successfully', restaurant })
     }
@@ -143,17 +196,20 @@ exports.approveRestaurant = async (req, res) => {
 };
 
 
-exports.deleteRestaurant=async(req,res)=>{
-    const {id}=req.query
-    try{
-        const restroId=await Restaurant.findByPk(id)
-        if(!restroId){
-            return res.status(403).json({message:'Restaurant Not Found'})
+exports.deleteRestaurant = async (req, res) => {
+    const { id } = req.params
+    try {
+        const deletedCount = await Restaurant.destroy({
+            where: { id }
+        });
+
+        if (!deletedCount) {
+            return res.status(404).json({ message: 'Restaurant Not Found' })
         }
         await restroId.destroy()
         return res.status(200).json({ message: 'Restaurant deleted successfully' });
     }
-    catch(err){
-        return res.status(500).json({message:err.message})
+    catch (err) {
+        return res.status(500).json({ message: err.message })
     }
 }
