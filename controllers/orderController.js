@@ -65,7 +65,7 @@ exports.updateStatus = async (req, res) => {
     const { status } = req.body
     const { userId } = req.user.id || req.body
     try {
-        const orderId = await Order.findByPk(orderId)
+        const order = await Order.findByPk(orderId)
         const user = await User.findByPk(userId)
         if (!user) {
             return res.status(403).json({ message: 'User does not exist' })
@@ -74,7 +74,7 @@ exports.updateStatus = async (req, res) => {
             return res.status(403).json({ message: 'You are not a valid user' })
         }
 
-        if (!orderId) {
+        if (!order) {
             res.status(403).json({ message: 'Order Not Found' })
         }
         order.status = status;
