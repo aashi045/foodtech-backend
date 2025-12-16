@@ -84,3 +84,11 @@ in this api we use save() to update status, what is the difference between both
 
 -- the issue is , response return user data not menu, so we can do it as 
     include:[{model:Menu, as:'menus'},{model:User}]
+
+# // Hash password before saving ----and what does it mean in signup
+
+        This is a Sequelize hook.
+
+It automatically hashes the password whenever you create a new user through Sequelize.
+
+You don’t have to manually hash if you’re using User.create({ password: 'plainText' }).
